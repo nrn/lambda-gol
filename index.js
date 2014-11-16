@@ -1,4 +1,4 @@
-// ( ( x, y), (x, y) )
+// Seed values as a list of x,y pairs: ( ( x, y), (x, y) )
 var next = cons(cons(num1, num2), cons(cons(num2, num2), cons(cons(num3, num2), nil)))
 
 console.log(display(next))
@@ -40,27 +40,19 @@ function filter (neighbors, last, living, seen) {
 }
 
 function mem (cell, list) {
-  return lif(eq(sum(list, cell, num0), num0), function () {
-    return f
-  }, function () {
-    return t
-  })()
+  return lif(eq(sum(list, cell, num0), num0), f, t)
 }
 
 function sum (list, cell, tot) {
   return lif(nul(list), function () {
     return tot
   }, function () {
-    return sum(cdr(list), cell, lif(same(car(list), cell), function () { return  inc(tot) }, function () { return tot })())
+    return sum(cdr(list), cell, lif(same(car(list), cell), inc(tot), tot))
   })()
 }
 
 function same (a, b) {
-  return lif(and(eq(car(a), car(b)), eq(cdr(a), cdr(b))), function () {
-    return t
-  }, function () {
-    return f
-  })()
+  return lif(and(eq(car(a), car(b)), eq(cdr(a), cdr(b))), t, f)
 }
 
 function listNeighbors (l) {
@@ -109,10 +101,8 @@ function nil () {
   return t
 }
 
-function num0 (f) {
-  return function (x) {
-    return x
-  }
+function num0 (_) {
+  return id
 }
 
 function num1 (f) {
@@ -139,9 +129,8 @@ function num4 (f) {
   }
 }
 
-function nul (x) {
-  if (x === nil) return t
-  return f
+function nul (p) {
+  return p(makeConst(f))
 }
 
 function and (a, b) {
@@ -149,11 +138,7 @@ function and (a, b) {
 }
 
 function eq (a, b) {
-  return lif(and(isZero(sub(a, b)), isZero(sub(b, a))), function () {
-    return t
-  }, function () {
-    return f
-  })()
+  return lif(and(isZero(sub(a, b)), isZero(sub(b, a))), t, f)
 }
 
 function inc (n) {
@@ -165,7 +150,7 @@ function inc (n) {
 }
 
 function isZero (n) {
-  return n(function (x) { return f})(t)
+  return n(makeConst(f))(t)
 }
 
 
@@ -173,8 +158,8 @@ function dec (n) {
   return function (f) {
     return function (x) {
       return n(function (g) { return function (h) { return h(g(f)) }}
-        )(function (u) { return x }
-        )(function (u) { return u})
+        )(makeConst(x)
+        )(id)
     }
   }
 }
