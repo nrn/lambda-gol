@@ -9,33 +9,34 @@ setInterval(function () {
 }, 1000)
 
 function start (last) {
-  var neighbors = listNeighbors(last)
-  return filter(neighbors, last, nil, nil)
+  return filter(listNeighbors(last), last, nil, nil)
 }
 
 function filter (neighbors, last, living, seen) {
   return lif(nul(neighbors), function () {
     return living
   }, function () {
-    var cell = car(neighbors)
-    return lif(mem(cell, seen), function () {
-      return filter(cdr(neighbors), last, living, seen)
-    }, function () {
-      var tot = sum(neighbors, cell, num0)
-      return lif(eq(tot,num3), function () {
-        return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+    return (function (cell) {
+      return lif(mem(cell, seen), function () {
+        return filter(cdr(neighbors), last, living, seen)
       }, function () {
-        return lif(eq(tot,num2), function () {
-          return lif(mem(cell, last), function () {
+        return (function (tot) {
+          return lif(eq(tot,num3), function () {
             return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
           }, function () {
-            return filter(cdr(neighbors), last, living, cons(cell, seen))
+            return lif(eq(tot,num2), function () {
+              return lif(mem(cell, last), function () {
+                return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+              }, function () {
+                return filter(cdr(neighbors), last, living, cons(cell, seen))
+              })()
+            }, function () {
+              return filter(cdr(neighbors), last, living, cons(cell, seen))
+            })()
           })()
-        }, function () {
-          return filter(cdr(neighbors), last, living, cons(cell, seen))
-        })()
+        })(sum(neighbors, cell, num0))
       })()
-    })()
+    })(car(neighbors))
   })()
 }
 
@@ -59,15 +60,16 @@ function listNeighbors (l) {
   return lif(nul(l), function () {
     return l
   }, function () {
-    var cell = car(l)
-    return cons(cons(inc(car(cell)), cdr(cell)),
-        cons(cons(car(cell), inc(cdr(cell))),
-        cons(cons(inc(car(cell)), inc(cdr(cell))),
-        cons(cons(inc(car(cell)), dec(cdr(cell))),
-        cons(cons(dec(car(cell)), inc(cdr(cell))),
-        cons(cons(dec(car(cell)), cdr(cell)),
-        cons(cons(car(cell), dec(cdr(cell))),
-        cons(cons(dec(car(cell)), dec(cdr(cell))),listNeighbors(cdr(l))))))))))
+    return (function (cell) {
+      return cons(cons(inc(car(cell)), cdr(cell)),
+          cons(cons(car(cell), inc(cdr(cell))),
+          cons(cons(inc(car(cell)), inc(cdr(cell))),
+          cons(cons(inc(car(cell)), dec(cdr(cell))),
+          cons(cons(dec(car(cell)), inc(cdr(cell))),
+          cons(cons(dec(car(cell)), cdr(cell)),
+          cons(cons(car(cell), dec(cdr(cell))),
+          cons(cons(dec(car(cell)), dec(cdr(cell))),listNeighbors(cdr(l))))))))))
+    })(car(l))
   })()
 }
 
@@ -177,6 +179,8 @@ function makeConst (x) {
     return x
   }
 }
+
+// display logic
 
 function display (l) {
   return lif(nul(l), function () {
