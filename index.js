@@ -1,9 +1,7 @@
 // ( ( x, y), (x, y) )
-var first = cons(cons(1, 1), cons(cons(1, 2), cons(cons(1, 3), nil)))
+var next = cons(cons(num1, num2), cons(cons(num2, num2), cons(cons(num3, num2), nil)))
 
-console.log(display(first))
-
-var next = start(first)
+console.log(display(next))
 
 setInterval(function () {
   next = start(next)
@@ -23,38 +21,46 @@ function filter (neighbors, last, living, seen) {
     return lif(mem(cell, seen), function () {
       return filter(cdr(neighbors), last, living, seen)
     }, function () {
-      var tot = sum(neighbors, cell, 0)
-      if (eq(tot,3)) return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
-      if (eq(tot, 2)) {
-        return lif(mem(cell, last), function () {
-          return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+      var tot = sum(neighbors, cell, num0)
+      return lif(eq(tot,num3), function () {
+        return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+      }, function () {
+        return lif(eq(tot,num2), function () {
+          return lif(mem(cell, last), function () {
+            return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+          }, function () {
+            return filter(cdr(neighbors), last, living, cons(cell, seen))
+          })()
         }, function () {
           return filter(cdr(neighbors), last, living, cons(cell, seen))
         })()
-      }
-      return filter(cdr(neighbors), last, living, cons(cell, seen))
+      })()
     })()
   })()
 }
 
 function mem (cell, list) {
-  if (sum(list, cell, 0) > 0) {
+  return lif(eq(sum(list, cell, num0), num0), function () {
+    return f
+  }, function () {
     return t
-  }
-  return f
+  })()
 }
 
 function sum (list, cell, tot) {
   return lif(nul(list), function () {
     return tot
   }, function () {
-    return sum(cdr(list), cell, lif(same(car(list), cell), inc(tot), tot))
+    return sum(cdr(list), cell, lif(same(car(list), cell), function () { return  inc(tot) }, function () { return tot })())
   })()
 }
 
 function same (a, b) {
-  if (eq(car(a), car(b)) && eq(cdr(a), cdr(b))) return t
-  return f
+  return lif(and(eq(car(a), car(b)), eq(cdr(a), cdr(b))), function () {
+    return t
+  }, function () {
+    return f
+  })()
 }
 
 function listNeighbors (l) {
@@ -70,14 +76,6 @@ function listNeighbors (l) {
         cons(cons(dec(car(cell)), cdr(cell)),
         cons(cons(car(cell), dec(cdr(cell))),
         cons(cons(dec(car(cell)), dec(cdr(cell))),listNeighbors(cdr(l))))))))))
-  })()
-}
-
-function display (l) {
-  return lif(nul(l), function () {
-    return ''
-  }, function () {
-    return '( ' + car(car(l)) + ', ' + cdr(car(l)) + ' ), ' + display(cdr(l))
   })()
 }
 
@@ -107,7 +105,9 @@ function lif (a, b, c) {
   return a(b, c)
 }
 
-function nil () {}
+function nil () {
+  return t
+}
 
 function num0 (f) {
   return function (x) {
@@ -121,22 +121,94 @@ function num1 (f) {
   }
 }
 
+function num2 (f) {
+  return function (x) {
+    return f(f(x))
+  }
+}
+
+function num3 (f) {
+  return function (x) {
+    return f(f(f(x)))
+  }
+}
+
+function num4 (f) {
+  return function (x) {
+    return f(f(f(f(x))))
+  }
+}
+
 function nul (x) {
-  if (eq(x,nil)) return t
+  if (x === nil) return t
   return f
 }
 
-function eq (a, b) {
-  return a === b
+function and (a, b) {
+  return a(b, f)
 }
 
-function inc (a) { return a + 1 }
-function dec (a) { return a - 1  }
+function eq (a, b) {
+  return lif(and(isZero(sub(a, b)), isZero(sub(b, a))), function () {
+    return t
+  }, function () {
+    return f
+  })()
+}
 
-//function inc (n) {
-//  return function (f) {
-//    return function (x) {
-//      return f(n(f, x))
-//    }
-//  }
-//}
+function inc (n) {
+  return function (f) {
+    return function (x) {
+      return f(n(f)(x))
+    }
+  }
+}
+
+function isZero (n) {
+  return n(function (x) { return f})(t)
+}
+
+
+function dec (n) {
+  return function (f) {
+    return function (x) {
+      return n(function (g) { return function (h) { return h(g(f)) }}
+        )(function (u) { return x }
+        )(function (u) { return u})
+    }
+  }
+}
+
+function sub (a, b) {
+  return b(dec)(a)
+}
+
+function id (x) {
+  return x
+}
+
+function makeConst (x) {
+  return function (_) {
+    return x
+  }
+}
+
+function display (l) {
+  return lif(nul(l), function () {
+    return ''
+  }, function () {
+    return '( ' + num(car(car(l))) + ', ' + num(cdr(car(l))) + ' ), ' + display(cdr(l))
+  })()
+}
+
+function num (n) {
+  return displayNum(n, 0)
+}
+
+function displayNum (n, total) {
+  return lif(isZero(n), function () {
+    return total
+  }, function () {
+    return displayNum(dec(n), total+1)
+  })()
+}
