@@ -18,29 +18,30 @@ function start (last) {
 }
 
 function filter (neighbors, last, living, seen) {
-  return lif(nul(neighbors), function () {
-    return living
-  }, function () {
+  return lif(nul(neighbors), makeConst(living), function () {
     return (function (cell) {
-      return lif(member(cell, seen), function () {
-        return filter(cdr(neighbors), last, living, seen)
-      }, function () {
+      return lif(member(cell, seen), skip, function () {
         return (function (tot) {
-          return lif(eq(tot,num3), function () {
-            return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
-          }, function () {
+          return lif(eq(tot,num3), live, function () {
             return lif(eq(tot,num2), function () {
-              return lif(member(cell, last), function () {
-                return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
-              }, function () {
-                return filter(cdr(neighbors), last, living, cons(cell, seen))
-              })()
-            }, function () {
-              return filter(cdr(neighbors), last, living, cons(cell, seen))
-            })()
+              return lif(member(cell, last), live, die)()
+            }, die)()
           })()
         })(howMany(neighbors, cell, num0))
       })()
+
+      function live () {
+        return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+      }
+
+      function die () {
+        return filter(cdr(neighbors), last, living, cons(cell, seen))
+      }
+
+      function skip () {
+        return filter(cdr(neighbors), last, living, seen)
+      }
+
     })(car(neighbors))
   })()
 }
@@ -50,9 +51,7 @@ function member (cell, list) {
 }
 
 function howMany (list, cell, tot) {
-  return lif(nul(list), function () {
-    return tot
-  }, function () {
+  return lif(nul(list), makeConst(tot), function () {
     return howMany(cdr(list), cell, lif(samePoint(car(list), cell), inc(tot), tot))
   })()
 }
@@ -62,18 +61,19 @@ function samePoint (a, b) {
 }
 
 function listNeighbors (l) {
-  return lif(nul(l), function () {
-    return l
-  }, function () {
+  return _listNeighbors(l, nil)
+}
+function _listNeighbors (l, sofar) {
+  return lif(nul(l), makeConst(sofar), function () {
     return (function (cell) {
-      return cons(cons(inc(car(cell)), cdr(cell)),
+      return _listNeighbors(cdr(l), cons(cons(inc(car(cell)), cdr(cell)),
           cons(cons(car(cell), inc(cdr(cell))),
           cons(cons(inc(car(cell)), inc(cdr(cell))),
           cons(cons(inc(car(cell)), dec(cdr(cell))),
           cons(cons(dec(car(cell)), inc(cdr(cell))),
           cons(cons(dec(car(cell)), cdr(cell)),
           cons(cons(car(cell), dec(cdr(cell))),
-          cons(cons(dec(car(cell)), dec(cdr(cell))),listNeighbors(cdr(l))))))))))
+          cons(cons(dec(car(cell)), dec(cdr(cell))),sofar)))))))))
     })(car(l))
   })()
 }
