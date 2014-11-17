@@ -1,4 +1,5 @@
 // Seed values as a list of x,y pairs: ( ( x, y), (x, y) )
+//
 // blinker
 // var next = cons(cons(num1, num2), cons(cons(num2, num2), cons(cons(num3, num2), nil)))
 // toad
@@ -18,32 +19,30 @@ function start (last) {
 }
 
 function filter (neighbors, last, living, seen) {
-  return lif(nul(neighbors), makeConst(living), function () {
-    return (function (cell) {
-      return lif(member(cell, seen), skip, function () {
-        return (function (tot) {
-          return lif(eq(tot,num3), live, function () {
-            return lif(eq(tot,num2), function () {
-              return lif(member(cell, last), live, die)()
-            }, die)()
-          })()
-        })(howMany(neighbors, cell, num0))
-      })()
+  return lif(nul(neighbors), makeConst(living), function (cell) {
+    return lif(member(cell, seen), skip, function () {
+      return (function (tot) {
+        return lif(eq(tot,num3), live, function () {
+          return lif(eq(tot,num2), function () {
+            return lif(member(cell, last), live, die)()
+          }, die)()
+        })()
+      })(howMany(neighbors, cell, num0))
+    })()
 
-      function live () {
-        return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
-      }
+    function live () {
+      return filter(cdr(neighbors), last, cons(cell, living), cons(cell, seen))
+    }
 
-      function die () {
-        return filter(cdr(neighbors), last, living, cons(cell, seen))
-      }
+    function die () {
+      return filter(cdr(neighbors), last, living, cons(cell, seen))
+    }
 
-      function skip () {
-        return filter(cdr(neighbors), last, living, seen)
-      }
+    function skip () {
+      return filter(cdr(neighbors), last, living, seen)
+    }
 
-    })(car(neighbors))
-  })()
+  })(car(neighbors))
 }
 
 function member (cell, list) {
@@ -64,18 +63,18 @@ function listNeighbors (l) {
   return _listNeighbors(l, nil)
 }
 function _listNeighbors (l, sofar) {
-  return lif(nul(l), makeConst(sofar), function () {
-    return (function (cell) {
-      return _listNeighbors(cdr(l), cons(cons(inc(car(cell)), cdr(cell)),
-          cons(cons(car(cell), inc(cdr(cell))),
-          cons(cons(inc(car(cell)), inc(cdr(cell))),
-          cons(cons(inc(car(cell)), dec(cdr(cell))),
-          cons(cons(dec(car(cell)), inc(cdr(cell))),
-          cons(cons(dec(car(cell)), cdr(cell)),
-          cons(cons(car(cell), dec(cdr(cell))),
-          cons(cons(dec(car(cell)), dec(cdr(cell))),sofar)))))))))
-    })(car(l))
-  })()
+  return lif(nul(l), makeConst(sofar), function (x, y) {
+    return _listNeighbors(cdr(l),
+      cons(cons(inc(x), y),
+        cons(cons(x, inc(y)),
+          cons(cons(inc(x), inc(y)),
+            cons(cons(inc(x), dec(y)),
+              cons(cons(dec(x), inc(y)),
+                cons(cons(dec(x), y),
+                  cons(cons(x, dec(y)),
+                    cons(cons(dec(x), dec(y)),
+                      sofar)))))))))
+  })(car(car(l)), cdr(car(l)))
 }
 
 // lists
@@ -127,9 +126,9 @@ function eq (a, b) {
 }
 
 function inc (n) {
-  return function (f) {
-    return function (x) {
-      return f(n(f)(x))
+  return function (a) {
+    return function (b) {
+      return a(n(a)(b))
     }
   }
 }
@@ -139,13 +138,11 @@ function isZero (n) {
 }
 
 function dec (n) {
-  return function (f) {
-    return function (x) {
-      return n(function (g) { return function (h) { return h(g(f)) }}
-        )(makeConst(x)
-        )(id)
-    }
-  }
+  return car(n(shift)(cons(num0, num0)))
+}
+
+function shift (x) {
+  return cons(cdr(x), inc(cdr(x)))
 }
 
 function sub (a, b) {
@@ -174,27 +171,27 @@ function num0 (_) {
   return id
 }
 
-function num1 (f) {
+function num1 (fn) {
   return function (x) {
-    return f(x)
+    return fn(x)
   }
 }
 
-function num2 (f) {
+function num2 (fn) {
   return function (x) {
-    return f(f(x))
+    return fn(fn(x))
   }
 }
 
-function num3 (f) {
+function num3 (fn) {
   return function (x) {
-    return f(f(f(x)))
+    return fn(fn(fn(x)))
   }
 }
 
-function num4 (f) {
+function num4 (fn) {
   return function (x) {
-    return f(f(f(f(x))))
+    return fn(fn(fn(fn(x))))
   }
 }
 
